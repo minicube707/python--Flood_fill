@@ -35,7 +35,6 @@ def make_grid(grid, end):
                         grid[node[0], node[1] + delta] = current_val + 1
                         list_next_node.append((node[0], node[1] + delta))
 
-
         list_node = []
         list_node = list_next_node 
 

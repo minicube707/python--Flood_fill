@@ -1,5 +1,4 @@
 import numpy as np
-import time
 
 size = 5
 grid = np.zeros((size, size), int)
@@ -165,6 +164,7 @@ while grid[current_node] != 0:
     print("where ",current_node)
     print("value ",grid[current_node])
     print("Direction ", dir_val)
+    print("-------------------")
     print("")
 
     

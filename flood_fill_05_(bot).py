@@ -263,7 +263,7 @@ def make_grid (grid, end, size):
 
     return grid
 
-#Draw the grid
+
 def draw_grid (win, rows, width):
     gap = width // rows
     for i in range(rows):
@@ -273,7 +273,6 @@ def draw_grid (win, rows, width):
             pygame.draw.line(win, GREY, (j * gap, 0), (j * gap, width))
 
 
-#Draw the node
 def draw (win, rows, width, start, end, pathfinder, set_wall, set_path):
     win.fill(WHITE)
     gap = width // rows
@@ -296,8 +295,7 @@ def draw (win, rows, width, start, end, pathfinder, set_wall, set_path):
     draw_grid(win, rows, width)
     pygame.display.update()
 
-#Algoritm to search the smallest path between two points
-def algorithm (win, grid, width, rows, start, end, set_wall, set_path):
+def algorithm (win, grid, width, rows, start, end, pathfinder, set_wall, set_path):
     current_node = start
     run = True
 
@@ -314,7 +312,6 @@ def algorithm (win, grid, width, rows, start, end, set_wall, set_path):
 
     return run
 
-#Algorithm to draw the path
 def algorithm_path (win, grid, width, rows, start, end, pathfinder,  set_wall, set_path):
     current_node = start
 
@@ -323,8 +320,6 @@ def algorithm_path (win, grid, width, rows, start, end, pathfinder,  set_wall, s
         set_path.add(current_node)
         draw(win, rows, width, start, end, pathfinder, set_wall, set_path)
 
-
-#Retrun the position in the grid, of the position of the mouse
 def get_clicked_pos (pos, rows, width):
 
     x, y = pos
@@ -334,7 +329,6 @@ def get_clicked_pos (pos, rows, width):
 
     return row, col
 
-#Add node in the grid
 def add_node (width, rows, start, end, set_wall):
 
     #Left click
@@ -355,8 +349,6 @@ def add_node (width, rows, start, end, set_wall):
     
     return start, end, set_wall
 
-
-#Delete node in the grid
 def delete_node (width, rows, start, end, set_wall):
 
     #Right click
@@ -389,6 +381,7 @@ def main (win , width):
     #END == 0
     start = None
     end = None
+    pathfinder = None
 
     run = True
     while run:
@@ -397,7 +390,7 @@ def main (win , width):
         start, end, set_wall = add_node(width, rows, start, end, set_wall)      #Left click
         start, end, set_wall = delete_node(width, rows, start, end, set_wall)   #Right click
 
-        draw(win, rows, width, start, end, None, set_wall, set_path)
+        draw(win, rows, width, start, end, pathfinder, set_wall, set_path)
 
         #Pygame event
         for event in pygame.event.get():
@@ -412,45 +405,24 @@ def main (win , width):
                 #Search the smallest path
                 if event.key == pygame.K_SPACE and start and end:
                     set_path.clear()
-                    go_grid = np.zeros((rows, rows), int)
-                    back_grid = np.zeros((rows, rows), int)
-                    one_time = False
-                    two_time = False
 
-                    #Verify two time than the path is clear
-                    while not two_time:
 
-                        #GO
-                        go_grid = np.zeros((rows, rows), int)           #Initialise the grid
-                        go_grid[-1 == back_grid] = -1                   #Save the wall already find
-                        go_grid = make_grid(go_grid, end, rows)         #Make the grid with the with the walls find 
-                        algorithm(win, go_grid, width, rows, start, end, set_wall, set_path)
-                        
-                        #Back  
-                        back_grid = np.zeros((rows, rows), int)         #Initialise the grid
-                        back_grid[-1 == go_grid] = -1                   #Keep the emplacement of the wall discorver
-                        back_grid = make_grid(back_grid, start, rows)   #Make the grid with the with the walls find
-                        algorithm(win, back_grid, width, rows, end, start, set_wall, set_path)
-                        
-                        #Initialise the grid, but saving the emplacement of the walls
-                        back_grid[0 < back_grid] = 0
-                        back_grid = make_grid(back_grid, end, rows)
+                    #GO
+                    grid = np.zeros((rows, rows), int)
+                    grid = make_grid(grid, end, rows)
+                    algorithm(win, grid, width, rows, start, end, pathfinder, set_wall, set_path)
 
-                        #Vérify if the algorithm has done two time the same go back
-                        if np.array_equal(go_grid, back_grid) and one_time:
-                            two_time = True
-                        elif np.array_equal(go_grid, back_grid):
-                            one_time = True
-                        else:
-                            one_time = False
-
+                    #Back
+                    #Keep the emplacement of the wall discorver
+                    grid[0 < grid] = 0
+                    grid = make_grid(grid, start, rows)
+                    algorithm(win, grid, width, rows, end, start, pathfinder, set_wall, set_path)
 
                     #Draw the path
                     #Keep the emplacement of the wall discorver
-                    go_grid[0 < go_grid] = 0
-                    go_grid = make_grid(go_grid, end, rows)
-                    algorithm_path(win, go_grid, width, rows, start, end, None, set_wall, set_path)
-                    
+                    grid[0 < grid] = 0
+                    grid = make_grid(grid, end, rows)
+                    algorithm_path(win, grid, width, rows, start, end, None, set_wall, set_path)
 
                 if event.key == pygame.K_n:
                     set_path.clear()
@@ -460,9 +432,9 @@ def main (win , width):
 
                 if event.key == pygame.K_c:
                     set_path.clear()
-                    
 
-                draw(win, rows, width, start, end, None, set_wall, set_path)
+
+                draw(win, rows, width, start, end, pathfinder, set_wall, set_path)
 
     pygame.quit()
 

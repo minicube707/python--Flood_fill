@@ -2,7 +2,7 @@ import numpy as np
 import pygame
 import random
 
-WIDTH = 800
+WIDTH = 700
 WIN = pygame.display.set_mode((WIDTH * 2, WIDTH))
 pygame.display.set_caption("Flood fill Path finding Algorithm")
 
@@ -64,6 +64,28 @@ def scann_wall_vertical (grid, current_node, delta, set):
     return set_wall, set_discorery_wall
 
 
+#Scann the neighbors and return True if the path is correct
+def scann_path_horizontal (grid, current_node, delta, follow_path):
+    current_val = grid[current_node]
+
+    #If the the neighbors follow the path
+    if grid[current_node[0], current_node[1] + delta] == current_val - 1:
+        follow_path = True
+
+    return follow_path
+
+
+#Scann the neighbors and return True if the path is correct
+def scann_path_vertical (grid, current_node, delta, follow_path):
+    current_val = grid[current_node]
+
+    #If the the neighbors follow the path
+    if grid[current_node[0] + delta, current_node[1]] == current_val - 1:
+        follow_path = True
+
+    return follow_path
+
+
 #Search the minimum value at the left and right of the node
 def search_min_horizontal (grid, node, delta, min):
 
@@ -106,6 +128,29 @@ def make_grid_vertical (grid, node, delta, list_next_node):
         list_next_node.append((node[0] + delta, node[1]))
 
     return list_next_node
+
+
+#Function adding this neighbors on the horizontal axis on the list
+def refresh_grid_horizontal (grid, node, delta, list_neighbors):
+
+    #If the nieghbors isn't a wall, add it in the list
+    if grid[node[0], node[1] + delta] != -1:
+        neigbhors_node = (node[0], node[1] + delta)
+        list_neighbors.append(neigbhors_node)
+
+    return list_neighbors
+
+
+#Function adding this neighbors on the vertical axis on the list
+def refresh_grid_vertical (grid, node, delta, list_neighbors):
+    
+    #If the nieghbors isn't a wall, add it in the list
+    if grid[node[0] + delta, node[1]] != -1:    
+        neigbhors_node = (node[0] + delta, node[1])
+        list_neighbors.append(neigbhors_node)
+
+    return list_neighbors 
+
 
 #Function who the algorithm choose a direction to closer the objectif
 def chose_direction (grid, current_node, size):
@@ -151,13 +196,65 @@ def chose_direction (grid, current_node, size):
 
 #Function scann his neighbors, to search the wall, and to built the path
 def scann_neigbhors (grid, current_node, size, run, stop, set_wall, set_discovery_wall):
+    follow_path = False
     set = (set_wall, set_discovery_wall)
 
     #Update the grid if the neighbors is a wall
     set = for_neighbors(grid, current_node, size, 1, scann_wall_horizontal, set)    #Left Right
     set = for_neighbors(grid, current_node, size, 0, scann_wall_vertical, set)      #Up Down
 
-    return run, stop, set[1]
+    #See if the path didn't loss
+    follow_path = for_neighbors(grid, current_node, size, 1, scann_path_horizontal, follow_path)    #Left Right
+    follow_path = for_neighbors(grid, current_node, size, 0, scann_path_vertical, follow_path)      #Up Down
+    
+    if not follow_path:
+        grid, run, stop = refresh_grid(grid, current_node, size, run, stop)
+
+    return grid, run, stop, set[1]
+
+
+#See the neighbors if the neighbors not follow update them thus his neighbors
+def refresh_grid (grid, current_node, size, run, stop):
+    list_neighbors = []
+    list_neighbors.append(current_node)
+
+    #While there is node to update
+    while len(list_neighbors) > 0 and run and not stop:
+
+        #Pygame event
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                    
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    run = False
+
+                if event.key == pygame.K_SPACE:
+                    stop = True 
+
+        #Initialisation
+        min = float("inf")
+        node = list_neighbors[0]
+        current_val = grid[node]
+
+        #Search the min value among the neighbors
+        min = for_neighbors(grid, node, size, 1, search_min_horizontal, min)    #Left Right
+        min = for_neighbors(grid, node, size, 0, search_min_vertical, min)      #Up Down
+
+        #If the minimun value isn't this of the current node minus one, the path is loss and we must to rebuild 
+        if min != current_val -1:
+            
+            grid[node] = (min +1)
+            list_neighbors = for_neighbors(grid, node, size, 1, refresh_grid_horizontal, list_neighbors)     #Left Right
+            list_neighbors = for_neighbors(grid, node, size, 0, refresh_grid_vertical, list_neighbors)       #Up Down
+
+        #At the delete the node, we see
+        list_neighbors.pop(0)
+
+
+    return grid, run, stop
+
 
 #Make the grid
 def make_grid (grid, end, size):
@@ -211,7 +308,7 @@ def draw_screen_bot (win,  width, rows, list_short_path, set_discovry_wall):
     
     #Convert the coordonate of the left grid, to be use in the right grid
     for current_node in list_short_path:
-        new_list_short_path.append(((current_node[1] + 1/2) * gap + width, (current_node[0] + 1/2) * gap))
+        new_list_short_path.append((current_node[1] * gap + width + gap/2, current_node[0] * gap + gap/2))
     
     #Draw the shortess path
     if len(new_list_short_path) > 1:
@@ -366,15 +463,16 @@ def make_maze(win, width, rows, set_wall, nb_door):
                     reset = False
                     draw(win, rows, width, start_node, None, current_node, set_wall, {}, {}, [], {})
 
-            #Pygame event
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
+        #Pygame event
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return set_wall, start_node, None, False
+            
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
                     return set_wall, start_node, None, False
 
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        return set_wall, start_node, None, False
-    
+                
     return set_wall, start_node, end_node, True
 
 
@@ -530,13 +628,18 @@ def place_end(set_wall, rows, rand):
     return  end_node
 
 #Search the shortess path between two points
-def search_short_path (grid, rows, end, current_node, run, stop):
-    list_short_path = []
+def search_short_path (grid, rows, start,  end, current_node, history_node, run, stop):
 
+    #Add the path already done by the pathfinder
+    list_short_path = []
+    list_short_path.append(start)
+    list_short_path.extend(history_node)
+    
     #Initialisation
     new_grid = np.zeros((rows, rows), int)           
     new_grid[-1 == grid] = -1 
     new_grid = make_grid(new_grid, end, rows) 
+
 
     #Search the shortess path between the pathfinder and the end point
     node = current_node
@@ -572,27 +675,19 @@ def algorithm(win, grid, width, rows, run, stop, start, end, set_wall, set_explo
                     show = False 
 
         #Scann the neighbors, update the grid
-        run, stop, set_discovry_wall = scann_neigbhors(grid, current_node, rows, run, stop, set_wall, set_discovry_wall)
-        
-        #Refresh the grid, to optimise the search
-        list_short_path = search_short_path (grid, rows, end, current_node, run, stop)
-        current_node = list_short_path[0]
+        grid, run, stop, set_discovry_wall = scann_neigbhors(grid, current_node, rows, run, stop, set_wall, set_discovry_wall)
 
+        #Then the grid updte chose a direction
+        current_node = chose_direction(grid, current_node, rows)
+        
         #Add the position 
         if show:
-
-            #Initialisation the path of  the bot
-            bot_path = []
-            bot_path.append(start)
             histroy_node.append(current_node)
-            bot_path.extend(histroy_node)
-            bot_path.extend(list_short_path)
-
             if current_node not in set_explore_path:
                 set_explore_path.add(current_node)
 
-            draw(win, rows, width, start, end, current_node, set_wall, {}, set_explore_path, bot_path, set_discovry_wall)
-
+            list_short_path = search_short_path (grid, rows, start, end, current_node, histroy_node, run, stop)
+            draw(win, rows, width, start, end, current_node, set_wall, {}, set_explore_path, list_short_path, set_discovry_wall)
 
     return run, stop
 
@@ -603,7 +698,7 @@ def algorithm_path (win, grid, width, rows, run, stop, start, end, set_wall, set
     list_short_path = []
     list_short_path.append(start)
 
-    while grid[current_node] != 0 and run and not stop:
+    while grid[current_node] != 1 and run and not stop:
 
         #Pygame event
         for event in pygame.event.get():
@@ -683,7 +778,7 @@ def delete_node (width, rows, start, end, set_wall):
 #Main algorithm
 def main (win , width):
     
-    rows = 50
+    rows = 51
     back_grid = np.zeros((rows, rows), int)
 
     #Wall == -1

@@ -12,7 +12,6 @@ def for_neighbors(grid, current_node, size, index, condition, option):
         if 0 <= (current_node[index] + delta ) < size:
             option = condition(grid, current_node, delta, option)
 
-
     return option
 
 
@@ -93,7 +92,7 @@ def make_grid_vertical(grid, node, delta, list_next_node):
 #Function adding this neighbors on the horizontal axis on the list
 def update_grid_horizontal(grid, node, delta, list_neighbors):
 
-    #If the nieghbors isn't a wall, add it in the list
+    #If the neighbors isn't a wall, add it in the list
     if grid[node[0], node[1] + delta] != -1:
         neigbhors_node = (node[0], node[1] + delta)
         list_neighbors.append(neigbhors_node)
@@ -104,7 +103,7 @@ def update_grid_horizontal(grid, node, delta, list_neighbors):
 #Function adding this neighbors on the vertical axis on the list
 def update_grid_vertical(grid, node, delta, list_neighbors):
     
-    #If the nieghbors isn't a wall, add it in the list
+    #If the neighbors isn't a wall, add it in the list
     if grid[node[0] + delta, node[1]] != -1:    
         neigbhors_node = (node[0] + delta, node[1])
         list_neighbors.append(neigbhors_node)
@@ -192,7 +191,7 @@ def update_grid(grid, current_node, size):
             list_neighbors = for_neighbors(grid, node, size, 1, update_grid_horizontal, list_neighbors)     #Left Right
             list_neighbors = for_neighbors(grid, node, size, 0, update_grid_vertical, list_neighbors)       #Up Down
 
-        #At the delete the node, we see
+        #At the end delete the node, we see
         list_neighbors.pop(0)
     return grid
 
@@ -209,7 +208,6 @@ def make_grid(grid, end, size):
         for node in list_node:
             list_next_node = for_neighbors(grid, node, size, 1, make_grid_horizontal, list_next_node)   #Left Right
             list_next_node = for_neighbors(grid, node, size, 0, make_grid_vertical, list_next_node)     #Up Down
-
 
         list_node = []
         list_node = list_next_node 
