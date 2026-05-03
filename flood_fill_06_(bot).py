@@ -1,5 +1,6 @@
 import numpy as np
 import pygame
+import time
 
 WIDTH = 800
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
@@ -264,13 +265,16 @@ def make_grid (grid, end, size):
     return grid
 
 #Draw the grid
-def draw_grid (win, rows, width):
+def draw_grid(win, rows, width):
     gap = width // rows
-    for i in range(rows):
-        pygame.draw.line(win, GREY, (0, i * gap), (width, i * gap))
 
-        for j in range(rows):
-            pygame.draw.line(win, GREY, (j * gap, 0), (j * gap, width))
+    #Horizontal lines
+    for i in range(rows):
+        pygame.draw.line(win, GREY, (0, i * gap), (width * 2, i * gap))
+
+    #Vertical lines
+    for j in range(rows):
+        pygame.draw.line(win, GREY, (j * gap, 0), (j * gap, width))
 
 
 #Draw the node
@@ -310,6 +314,7 @@ def algorithm (win, grid, width, rows, start, end, set_wall, set_path):
         #Then the grid updte chose a direction
         current_node =  chose_direction(grid, current_node, rows)
 
+        time.sleep(0.01)
         draw(win, rows, width, start, end, current_node, set_wall, set_path)
 
     return run

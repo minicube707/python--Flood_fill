@@ -1,5 +1,6 @@
 import numpy as np
 import pygame
+import time
 
 WIDTH = 800
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
@@ -264,13 +265,16 @@ def make_grid (grid, end, size):
     return grid
 
 
-def draw_grid (win, rows, width):
+def draw_grid(win, rows, width):
     gap = width // rows
-    for i in range(rows):
-        pygame.draw.line(win, GREY, (0, i * gap), (width, i * gap))
 
-        for j in range(rows):
-            pygame.draw.line(win, GREY, (j * gap, 0), (j * gap, width))
+    #Horizontal lines
+    for i in range(rows):
+        pygame.draw.line(win, GREY, (0, i * gap), (width * 2, i * gap))
+
+    #Vertical lines
+    for j in range(rows):
+        pygame.draw.line(win, GREY, (j * gap, 0), (j * gap, width))
 
 
 def draw (win, rows, width, start, end, pathfinder, set_wall, set_path):
@@ -308,6 +312,7 @@ def algorithm (win, grid, width, rows, start, end, pathfinder, set_wall, set_pat
         #Then the grid updte chose a direction
         current_node =  chose_direction(grid, current_node, rows)
 
+        time.sleep(0.01)
         draw(win, rows, width, start, end, current_node, set_wall, set_path)
 
     return run
@@ -383,9 +388,13 @@ def main (win , width):
     end = None
     pathfinder = None
 
+    clock = pygame.time.Clock()
+    
     run = True
     while run:
         
+        clock.tick(60)
+         
         #Place the node in the grid
         start, end, set_wall = add_node(width, rows, start, end, set_wall)      #Left click
         start, end, set_wall = delete_node(width, rows, start, end, set_wall)   #Right click

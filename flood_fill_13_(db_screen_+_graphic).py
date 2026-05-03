@@ -328,14 +328,16 @@ def draw_screen_bot (win,  width, rows, list_short_path, set_discovry_wall):
 
 
 #Draw the grid
-def draw_grid (win, rows, width):
+def draw_grid(win, rows, width):
     gap = width // rows
 
+    #Horizontal lines
     for i in range(rows):
-        pygame.draw.line(win, GREY, (0, i * gap), (width*2, i * gap))
+        pygame.draw.line(win, GREY, (0, i * gap), (width * 2, i * gap))
 
-        for j in range(rows * 2):
-            pygame.draw.line(win, GREY, (j * gap, 0), (j * gap, width))
+    #Vertical lines
+    for j in range(rows * 2):
+        pygame.draw.line(win, GREY, (j * gap, 0), (j * gap, width))
 
 
 #Clean the window
